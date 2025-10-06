@@ -14,6 +14,7 @@ struct ContentView: View {
     @State var scalePlayButton: Bool = false
     @State var moveBackGroundImage: Bool = false
     @State var animateViewIn: Bool = false
+    @State var showInstructions = false
     
     var body: some View {
         GeometryReader { geo in
@@ -91,6 +92,7 @@ struct ContentView: View {
                             if animateViewIn {
                                 Button {
                                     // Show instruction screen
+                                    showInstructions.toggle()
                                 } label: {
                                     Image(systemName: "info.circle.fill")
                                         .font(.largeTitle)
@@ -103,6 +105,9 @@ struct ContentView: View {
                             .easeIn(duration: 0.7).delay(2.7),
                             value: animateViewIn
                         )
+                        .sheet(isPresented: $showInstructions) {
+                            InstructionsView()
+                        }
                         
                         Spacer()
                         
