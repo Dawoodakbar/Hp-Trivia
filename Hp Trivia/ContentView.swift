@@ -15,6 +15,7 @@ struct ContentView: View {
     @State var moveBackGroundImage: Bool = false
     @State var animateViewIn: Bool = false
     @State var showInstructions = false
+    @State var showSettings = false
     
     var body: some View {
         GeometryReader { geo in
@@ -143,7 +144,7 @@ struct ContentView: View {
                         VStack {
                             if animateViewIn {
                                 Button {
-                                    
+                                    showSettings.toggle()
                                 } label: {
                                     Image(systemName: "gearshape.fill")
                                         .font(.largeTitle)
@@ -156,6 +157,9 @@ struct ContentView: View {
                             .easeIn(duration: 0.7).delay(2.7),
                             value: animateViewIn
                         )
+                        .sheet(isPresented: $showSettings) {
+                            SettingView()
+                        }
                         
                         Spacer()
                         
