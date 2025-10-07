@@ -12,10 +12,7 @@ struct InstructionsView: View {
     @Environment(\.dismiss) private var dismiss
     var body: some View {
         ZStack {
-            Image(.parchment)
-                .resizable()
-                .background(.brown)
-                .ignoresSafeArea()
+            InfoBackgroundImage()
             
             VStack {
                 Image(.appiconwithradius)

@@ -32,8 +32,8 @@
 		2907D79E2E93824F000A1690 = {
 			isa = PBXGroup;
 			children = (
-				2907D7A92E93824F000A1690 /* Hp Trivia */,
 				2907D7A82E93824F000A1690 /* Products */,
+				2907D7A92E93824F000A1690 /* Hp Trivia */,
 			);
 			sourceTree = "<group>";
 		};
