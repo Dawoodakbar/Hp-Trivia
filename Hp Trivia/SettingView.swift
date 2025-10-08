@@ -20,7 +20,7 @@ struct SettingView: View {
         .active,
         .active,
         .inactive,
-        .inactive,
+        .locked,
         .locked,
         .locked,
         .locked

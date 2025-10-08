@@ -10,12 +10,13 @@ import AVKit
 
 struct ContentView: View {
     
-    @State var audioPlayer: AVAudioPlayer!
-    @State var scalePlayButton: Bool = false
-    @State var moveBackGroundImage: Bool = false
-    @State var animateViewIn: Bool = false
-    @State var showInstructions = false
-    @State var showSettings = false
+    @State private var audioPlayer: AVAudioPlayer!
+    @State private var scalePlayButton: Bool = false
+    @State private var moveBackGroundImage: Bool = false
+    @State private var animateViewIn: Bool = false
+    @State private var showInstructions = false
+    @State private var showSettings = false
+    @State private var playGame = false
     
     var body: some View {
         GeometryReader { geo in
@@ -116,6 +117,8 @@ struct ContentView: View {
                             if animateViewIn {
                                 Button {
                                     // Start new game
+                                    playGame.toggle()
+                                    
                                 } label: {
                                     Text("Play")
                                         .font(.largeTitle)
@@ -135,10 +138,12 @@ struct ContentView: View {
                                     }
                                 }
                                 .transition(.offset(y: geo.size.height/3))
+                                .fullScreenCover(isPresented: $playGame) {
+                                    Gameplay()
+                                }
                             }
                         }
                         .animation(.easeOut(duration: 0.7).delay(2),value: animateViewIn)
-                        
                         Spacer()
                         
                         VStack {
