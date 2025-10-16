@@ -18,6 +18,7 @@ struct Gameplay: View {
     @State private var movePointsToScore: Bool = false
     @State private var revealHint: Bool = false
     @State private var revealBook: Bool = false
+    @State private var wrongeAnswersTapped : [Int] = []
     
     let tempAnswers = [true, false, false, false]
     
@@ -28,7 +29,7 @@ struct Gameplay: View {
                     .resizable()
                     .frame(width: geo.size.width * 3, height: geo.size.height * 1.05)
                     .overlay {
-                        Rectangle().foregroundColor(.black.opacity(0.7 ))
+                        Rectangle().foregroundColor(.black.opacity(0.8))
                     }
                 
                 VStack {
@@ -54,6 +55,7 @@ struct Gameplay: View {
                                 .multilineTextAlignment(.center)
                                 .padding()
                                 .transition(.scale)
+                                .opacity(tappedCorrectAnswer ? 0.1 : 1)
                         }
                     }
                     .animation(.easeInOut(duration: 2), value: animateViewsIn)
@@ -103,6 +105,8 @@ struct Gameplay: View {
                                             .opacity(revealHint ? 1 : 0)
                                             .scaleEffect(revealHint ? 1.33 : 1)
                                     )
+                                    .opacity(tappedCorrectAnswer ? 0.1 : 1)
+                                    .disabled(tappedCorrectAnswer)
                             }
                         }
                         .animation(
@@ -154,7 +158,9 @@ struct Gameplay: View {
                                             .padding(.trailing, 33)
                                             .opacity(revealBook ? 1 : 0)
                                             .scaleEffect(revealBook ? 1.33 : 1)
-                                    ) 
+                                    )
+                                    .opacity(tappedCorrectAnswer ? 0.1 : 1)
+                                    .disabled(tappedCorrectAnswer)
                             }
                         }
                         .animation(
@@ -164,6 +170,7 @@ struct Gameplay: View {
                     }
                     .padding(.bottom)
                     
+                    // MARK: Answers
                     LazyVGrid(
                         columns: [GridItem(), GridItem()]) {
                             ForEach(1..<5){ i in
@@ -214,6 +221,7 @@ struct Gameplay: View {
                                         .easeOut(duration: 1)
                                         .delay(1.5), value: animateViewsIn
                                     )
+                                    // MARK: Wronge Answers
                                 } else {
                                     VStack {
                                         if animateViewsIn {
@@ -222,9 +230,32 @@ struct Gameplay: View {
                                                 .multilineTextAlignment(.center)
                                                 .padding()
                                                 .frame(width: geo.size.width/2.15, height: 80)
-                                                .background(.green.opacity(0.5))
+                                                .background(
+                                                    wrongeAnswersTapped
+                                                        .contains(i) ? .red
+                                                        .opacity(0.5) : .green
+                                                        .opacity(0.5)
+                                                )
                                                 .cornerRadius(25)
                                                 .transition(.scale)
+                                                .onTapGesture {
+                                                    withAnimation(
+                                                        .easeOut(duration: 1)
+                                                    ) {
+                                                        wrongeAnswersTapped
+                                                            .append(i)
+                                                    }
+                                                    
+                                                }
+                                                .scaleEffect(
+                                                    wrongeAnswersTapped
+                                                        .contains(i) ? 0.8 : 1
+                                                )
+                                                .disabled(
+                                                    tappedCorrectAnswer || wrongeAnswersTapped
+                                                        .contains(i)
+                                                )
+                                                .opacity(tappedCorrectAnswer ? 0.1 : 1)
                                         }
                                     }
                                     .animation(
@@ -295,7 +326,7 @@ struct Gameplay: View {
                             .multilineTextAlignment(.center)
                             .padding(10)
                             .frame(width: geo.size.width/2.15, height: 80)
-                            .background(.green.opacity(0.5))
+                            .background(.green.opacity(0.6))
                             .cornerRadius(25)
                             .scaleEffect(2)
                             .matchedGeometryEffect(id: "answer", in: namespace)
@@ -307,7 +338,16 @@ struct Gameplay: View {
                     VStack {
                         if tappedCorrectAnswer {
                             Button("Next Level >>") {
-                                // TODO: reset level for next question
+                                animateViewsIn = false
+                                tappedCorrectAnswer = false
+                                revealBook = false
+                                revealHint = false
+                                movePointsToScore = false
+                                wrongeAnswersTapped = []
+                                DispatchQueue.main
+                                    .asyncAfter(deadline: .now() + 0.5) {
+                                        animateViewsIn = true
+                                    }
                             }
                             .buttonStyle(.borderedProminent)
                             .tint(.blue.opacity(0.5))
