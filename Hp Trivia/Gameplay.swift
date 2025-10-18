@@ -9,8 +9,18 @@ import SwiftUI
 
 struct Gameplay: View {
     
+    @Environment(\.dismiss) private var dimiss
+    @Namespace private var namespace
     @State private var animateViewsIn: Bool = false
     @State private var tappedCorrectAnswer: Bool = false
+    @State private var hintWiggle: Bool = false
+    @State private var scaleNextButton: Bool = false
+    @State private var movePointsToScore: Bool = false
+    @State private var revealHint: Bool = false
+    @State private var revealBook: Bool = false
+    @State private var wrongeAnswersTapped : [Int] = []
+    
+    let tempAnswers = [true, false, false, false]
     
     var body: some View {
         GeometryReader { geo in
@@ -19,14 +29,14 @@ struct Gameplay: View {
                     .resizable()
                     .frame(width: geo.size.width * 3, height: geo.size.height * 1.05)
                     .overlay {
-                        Rectangle().foregroundColor(.black.opacity(0.7 ))
+                        Rectangle().foregroundColor(.black.opacity(0.8))
                     }
                 
                 VStack {
                     
                     HStack {
                         Button ("End Game" ) {
-                            
+                            dimiss()
                         }
                         .buttonStyle(.borderedProminent)
                         .tint(.red.opacity(0.6))
@@ -45,6 +55,7 @@ struct Gameplay: View {
                                 .multilineTextAlignment(.center)
                                 .padding()
                                 .transition(.scale)
+                                .opacity(tappedCorrectAnswer ? 0.1 : 1)
                         }
                     }
                     .animation(.easeInOut(duration: 2), value: animateViewsIn)
@@ -53,6 +64,7 @@ struct Gameplay: View {
                     
                     HStack {
                         
+                        // MARK: Hint
                         VStack {
                             if animateViewsIn {
                                 Image(systemName: "questionmark.app.fill")
@@ -60,10 +72,41 @@ struct Gameplay: View {
                                     .scaledToFit()
                                     .frame(width: 100)
                                     .foregroundColor(.cyan)
-                                    .rotationEffect(.degrees(-15))
+                                    .rotationEffect(.degrees(hintWiggle ? -13 : -17))
                                     .padding()
                                     .padding(.leading, 20)
                                     .transition(.offset(x: -geo.size.width / 2))
+                                    .onAppear {
+                                        withAnimation(
+                                            .easeInOut(duration: 0.1)
+                                            .repeatCount(9)
+                                            .delay(5)
+                                            .repeatForever()) {
+                                                hintWiggle = true
+                                        }
+                                    }
+                                    .onTapGesture {
+                                        withAnimation(.easeOut(duration: 1)) {
+                                            revealHint = true
+                                        }
+                                    }
+                                    .rotation3DEffect(
+                                        .degrees(revealHint ? 1440 : 0),
+                                        axis: (x: 0, y: 1, z: 0)
+                                    )
+                                    .scaleEffect(revealHint ? 5 : 1)
+                                    .opacity(revealHint ? 0 : 1)
+                                    .offset(x: revealHint ? geo.size.width/2 : 0)
+                                    .overlay (
+                                        Text("The Boy Who ____")
+                                            .padding(.leading, 33)
+                                            .minimumScaleFactor(0.5)
+                                            .multilineTextAlignment(.center)
+                                            .opacity(revealHint ? 1 : 0)
+                                            .scaleEffect(revealHint ? 1.33 : 1)
+                                    )
+                                    .opacity(tappedCorrectAnswer ? 0.1 : 1)
+                                    .disabled(tappedCorrectAnswer)
                             }
                         }
                         .animation(
@@ -72,6 +115,7 @@ struct Gameplay: View {
                         )
                         Spacer()
                         
+                        // MARK: Book
                         VStack {
                             if animateViewsIn {
                                 Image(systemName: "book.closed")
@@ -82,10 +126,41 @@ struct Gameplay: View {
                                     .frame(width: 100, height: 100)
                                     .background(.cyan)
                                     .cornerRadius(20)
-                                    .rotationEffect(.degrees(15))
+                                    .rotationEffect(.degrees(hintWiggle ? 13 : 17))
                                     .padding()
                                     .padding(.trailing, 20)
                                     .transition(.offset(x: geo.size.width / 2))
+                                    .onAppear {
+                                        withAnimation(
+                                            .easeInOut(duration: 0.1)
+                                            .repeatCount(9)
+                                            .delay(5)
+                                            .repeatForever()) {
+                                                hintWiggle = true
+                                            }
+                                    }
+                                    .onTapGesture {
+                                        withAnimation(.easeOut(duration: 1)) {
+                                            revealBook = true
+                                        }
+                                    }
+                                    .rotation3DEffect(
+                                        .degrees(revealBook ? 1440 : 0),
+                                        axis: (x: 0, y: 1, z: 0)
+                                    )
+                                    .scaleEffect(revealBook ? 5 : 1)
+                                    .opacity(revealBook ? 0 : 1)
+                                    .offset(x: revealBook ? -geo.size.width/2 : 0)
+                                    .overlay (
+                                        Image(.hp1)
+                                            .resizable()
+                                            .scaledToFit()
+                                            .padding(.trailing, 33)
+                                            .opacity(revealBook ? 1 : 0)
+                                            .scaleEffect(revealBook ? 1.33 : 1)
+                                    )
+                                    .opacity(tappedCorrectAnswer ? 0.1 : 1)
+                                    .disabled(tappedCorrectAnswer)
                             }
                         }
                         .animation(
@@ -95,27 +170,99 @@ struct Gameplay: View {
                     }
                     .padding(.bottom)
                     
+                    // MARK: Answers
                     LazyVGrid(
                         columns: [GridItem(), GridItem()]) {
                             ForEach(1..<5){ i in
-                                VStack {
-                                    if animateViewsIn {
-                                        Text("Answer \(i)")
-                                            .minimumScaleFactor(0.5)
-                                            .multilineTextAlignment(.center)
-                                            .padding()
-                                            .frame(width: geo.size.width/2.15, height: 80)
-                                            .background(.green.opacity(0.5))
-                                            .cornerRadius(25)
-                                            .transition(.scale)
-                                    }
+                                if tempAnswers[i-1] {
+                                    VStack {
+                                        if animateViewsIn {
+                                            if tappedCorrectAnswer == false {
+                                                Text("Answer \(i)")
+                                                    .minimumScaleFactor(0.5)
+                                                    .multilineTextAlignment(.center)
+                                                    .padding()
+                                                    .frame(width: geo.size.width/2.15, height: 80)
+                                                    .background(.green.opacity(0.5))
+                                                    .cornerRadius(25)
+                                                    .transition(
+                                                        .asymmetric(
+                                                            insertion: .scale,
+                                                            removal:
+                                                                    .scale(
+                                                                        scale: 5
+                                                                    ).combined(
+                                                                        with: .opacity
+                                                                            .animation(
+                                                                                .easeOut(
+                                                                                    duration: 0.5
+                                                                                )
+                                                                            )
+                                                                    )
+                                                        )
+                                                    )
+                                                    .matchedTransitionSource(
+                                                        id: "answer",
+                                                        in: namespace
+                                                    )
+                                                    .onTapGesture {
+                                                        withAnimation(
+                                                            .easeOut(duration: 1)
+                                                        ) {
+                                                            tappedCorrectAnswer = true
+                                                        }
+                                                    }
+                                            }
+                                        }
                                         
+                                        
+                                    }
+                                    .animation(
+                                        .easeOut(duration: 1)
+                                        .delay(1.5), value: animateViewsIn
+                                    )
+                                    // MARK: Wronge Answers
+                                } else {
+                                    VStack {
+                                        if animateViewsIn {
+                                            Text("Answer \(i)")
+                                                .minimumScaleFactor(0.5)
+                                                .multilineTextAlignment(.center)
+                                                .padding()
+                                                .frame(width: geo.size.width/2.15, height: 80)
+                                                .background(
+                                                    wrongeAnswersTapped
+                                                        .contains(i) ? .red
+                                                        .opacity(0.5) : .green
+                                                        .opacity(0.5)
+                                                )
+                                                .cornerRadius(25)
+                                                .transition(.scale)
+                                                .onTapGesture {
+                                                    withAnimation(
+                                                        .easeOut(duration: 1)
+                                                    ) {
+                                                        wrongeAnswersTapped
+                                                            .append(i)
+                                                    }
+                                                    
+                                                }
+                                                .scaleEffect(
+                                                    wrongeAnswersTapped
+                                                        .contains(i) ? 0.8 : 1
+                                                )
+                                                .disabled(
+                                                    tappedCorrectAnswer || wrongeAnswersTapped
+                                                        .contains(i)
+                                                )
+                                                .opacity(tappedCorrectAnswer ? 0.1 : 1)
+                                        }
+                                    }
+                                    .animation(
+                                        .easeOut(duration: 1)
+                                        .delay(1.5), value: animateViewsIn
+                                    )
                                 }
-                                .animation(
-                                    .easeOut(duration: 1)
-                                    .delay(1.5), value: animateViewsIn 
-                                )
-                                
                             }
                         }
                     
@@ -134,6 +281,17 @@ struct Gameplay: View {
                                 .font(.largeTitle)
                                 .padding(.top, 50)
                                 .transition(.offset(y: -geo.size.height/4))
+                                .offset(
+                                    x: movePointsToScore ? geo.size.width / 2.3 : 0,
+                                    y: movePointsToScore ? -geo.size.height / 13: 0
+                                )
+                                .opacity(movePointsToScore ? 0 : 1)
+                                .onAppear {
+                                    withAnimation(
+                                        .easeInOut(duration: 1).delay(3)) {
+                                            movePointsToScore = true
+                                        }
+                                }
                         }
                     }
                     .animation(
@@ -162,14 +320,17 @@ struct Gameplay: View {
                     
                     Spacer()
                     
-                    Text("Answer 1")
-                        .minimumScaleFactor(0.5)
-                        .multilineTextAlignment(.center)
-                        .padding(10)
-                        .frame(width: geo.size.width/2.15, height: 80)
-                        .background(.green.opacity(0.5))
-                        .cornerRadius(25)
-                        .scaleEffect(2)
+                    if tappedCorrectAnswer {
+                        Text("Answer 1")
+                            .minimumScaleFactor(0.5)
+                            .multilineTextAlignment(.center)
+                            .padding(10)
+                            .frame(width: geo.size.width/2.15, height: 80)
+                            .background(.green.opacity(0.6))
+                            .cornerRadius(25)
+                            .scaleEffect(2)
+                            .matchedGeometryEffect(id: "answer", in: namespace)
+                    }
                     
                     Spacer()
                     Spacer()
@@ -177,12 +338,29 @@ struct Gameplay: View {
                     VStack {
                         if tappedCorrectAnswer {
                             Button("Next Level >>") {
-                                // TODO: reset level for next question
+                                animateViewsIn = false
+                                tappedCorrectAnswer = false
+                                revealBook = false
+                                revealHint = false
+                                movePointsToScore = false
+                                wrongeAnswersTapped = []
+                                DispatchQueue.main
+                                    .asyncAfter(deadline: .now() + 0.5) {
+                                        animateViewsIn = true
+                                    }
                             }
                             .buttonStyle(.borderedProminent)
                             .tint(.blue.opacity(0.5))
                             .font(.largeTitle)
                             .transition(.offset(y: geo.size.height/3))
+                            .scaleEffect(scaleNextButton ? 1.2 : 1)
+                            .onAppear {
+                                withAnimation(
+                                    .easeInOut(duration: 1.3).repeatForever()
+                                ) {
+                                    scaleNextButton.toggle()
+                                }
+                            }
                         }
                     }
                     .animation(
@@ -199,8 +377,8 @@ struct Gameplay: View {
         }
         .ignoresSafeArea()
         .onAppear {
-            // animateViewsIn = true
-            tappedCorrectAnswer = true
+              animateViewsIn = true
+            // tappedCorrectAnswer = true
         }
         
     }
