@@ -7,24 +7,12 @@
 
 import SwiftUI
 
-enum BooksStatus {
-    case active
-    case inactive
-    case locked
-}
+
 
 struct SettingView: View {
     
     @Environment(\.dismiss) private var dismiss
-    @State private var books: [BooksStatus] = [
-        .active,
-        .active,
-        .inactive,
-        .locked,
-        .locked,
-        .locked,
-        .locked
-    ]
+    @EnvironmentObject private var store: Store
     
     var body: some View {
         ZStack {
@@ -40,7 +28,7 @@ struct SettingView: View {
                 ScrollView {
                     LazyVGrid(columns: [GridItem(), GridItem()]) {
                         ForEach(0..<7) { i in
-                            if books[i] == .active {
+                            if store.books[i] == .active {
                                 ZStack(alignment: .bottomTrailing) {
                                     Image("hp\(i+1)")
                                         .resizable()
@@ -55,9 +43,9 @@ struct SettingView: View {
                                         .shadow(radius: 1)
                                 }
                                 .onTapGesture {
-                                    books[i] = .inactive
+                                    store.books[i] = .inactive
                                 }
-                            } else if books[i] == .inactive {
+                            } else if store.books[i] == .inactive {
                                 ZStack(alignment: .bottomTrailing) {
                                     Image("hp\(i+1)")
                                         .resizable()
@@ -74,7 +62,7 @@ struct SettingView: View {
                                         .shadow(radius: 1)
                                 }
                                 .onTapGesture {
-                                    books[i] = .active
+                                    store.books[i] = .active
                                 }
                                 
                             } else {
@@ -112,4 +100,5 @@ struct SettingView: View {
 
 #Preview {
     SettingView()
+        .environmentObject(Store())
 }

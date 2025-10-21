@@ -10,6 +10,7 @@ import AVKit
 
 struct ContentView: View {
     
+    @EnvironmentObject private var store: Store
     @State private var audioPlayer: AVAudioPlayer!
     @State private var scalePlayButton: Bool = false
     @State private var moveBackGroundImage: Bool = false
@@ -164,6 +165,7 @@ struct ContentView: View {
                         )
                         .sheet(isPresented: $showSettings) {
                             SettingView()
+                                .environmentObject(store)
                         }
                         
                         Spacer()
@@ -195,4 +197,5 @@ struct ContentView: View {
 
 #Preview {
     ContentView()
+        .environmentObject(Store())
 }
