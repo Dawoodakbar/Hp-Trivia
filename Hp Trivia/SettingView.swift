@@ -7,8 +7,6 @@
 
 import SwiftUI
 
-
-
 struct SettingView: View {
     
     @Environment(\.dismiss) private var dismiss
@@ -28,7 +26,7 @@ struct SettingView: View {
                 ScrollView {
                     LazyVGrid(columns: [GridItem(), GridItem()]) {
                         ForEach(0..<7) { i in
-                            if store.books[i] == .active {
+                            if store.books[i] == .active || (store.books[i] == .locked && store.purchaseIDs.contains("hp\(i+1)")) {
                                 ZStack(alignment: .bottomTrailing) {
                                     Image("hp\(i+1)")
                                         .resizable()
@@ -41,6 +39,9 @@ struct SettingView: View {
                                         .foregroundColor(.green)
                                         .padding(3)
                                         .shadow(radius: 1)
+                                }
+                                .task{
+                                    store.books[i] = .active
                                 }
                                 .onTapGesture {
                                     store.books[i] = .inactive
@@ -77,6 +78,13 @@ struct SettingView: View {
                                         .font(.largeTitle)
                                         .imageScale(.large)
                                         .shadow(color: .white.opacity(0.75),radius: 1)
+                                }
+                                .onTapGesture {
+                                    let product = store.products[i-3]
+                                    
+                                    Task {
+                                        await store.purchase(product)
+                                    }
                                 }
                             }
                         }

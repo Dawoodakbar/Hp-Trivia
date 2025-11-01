@@ -15,6 +15,9 @@ struct Hp_TriviaApp: App {
         WindowGroup {
             ContentView()
                 .environmentObject(store)
+                .task {
+                    await store.loadProducts()
+                }
         }
     }
 }
